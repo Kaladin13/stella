@@ -8,8 +8,18 @@ The first (and for now the only) yield farming strategy is based on `Storm Trade
 
 - [Strategy description with backtests and emulations](/strategy.ipynb)
 - [Data scraping](./scripts/collect_vault_data.py)
-- Realisation: TODO
+- [Realisation](./scripts/createLeveragedPosition.ts)
+- To launch stategy:
+
+```bash
+cp .env.example .env
+# Fill env file with RPC key
+npm i
+npm run strategy:stella
+```
+
 - Results:
+
 ```
 Best Interval:
 Start_Date     2024-04-23 22:00:00
@@ -29,6 +39,7 @@ Average profit: 5719.66 USD
 Net best profit: 6252.65 USD
 Net average profit: 4568.52 USD
 ```
+
 ![img](./public/strat_steva.jpg)
 
 ## Future ideas

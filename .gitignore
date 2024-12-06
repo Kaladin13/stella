@@ -5,6 +5,10 @@ __pycache__/
 # C extensions
 *.so
 
+.env
+
+temp/
+
 # Distribution / packaging
 bin/
 build/
@@ -48,3 +52,4 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+node_modules
