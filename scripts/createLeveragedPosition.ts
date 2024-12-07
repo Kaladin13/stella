@@ -1,8 +1,14 @@
 import { NetworkProvider, sleep } from "@ton/blueprint";
-import { Evaa, MAINNET_LP_POOL_CONFIG, TESTNET_POOL_CONFIG } from "@evaafi/sdk";
-import { fromNano, toNano, TonClient4 } from "@ton/ton";
+import {
+  Evaa,
+  FEES,
+  MAINNET_LP_POOL_CONFIG,
+  TESTNET_POOL_CONFIG,
+} from "@evaafi/sdk";
+import { Cell, fromNano, toNano, TonClient4 } from "@ton/ton";
 import { ASSET_CONFIG, ASSETS } from "../src/types/asset";
-import { waitForLpBalanceChange } from "../src/utils/lpBalance";
+import { getLpBalance, waitForLpBalanceChange } from "../src/fetch/lpBalance";
+import { waitForBorrowLimitChange } from "../src/fetch/borrow";
 
 export async function run(provider: NetworkProvider) {
   const isTestnet = provider.network() !== "mainnet";
@@ -15,9 +21,11 @@ export async function run(provider: NetworkProvider) {
     (c: string) => c
   )) as ASSETS;
 
-  const stormProvider = isTestnet
-    ? ASSET_CONFIG[baseAsset].testnetProvider
-    : ASSET_CONFIG[baseAsset].provider;
+  const config = isTestnet
+    ? ASSET_CONFIG[baseAsset].testnet
+    : ASSET_CONFIG[baseAsset].mainnet;
+
+  const stormProvider = config.stormProvider;
 
   const evaa = provider.open(
     new Evaa({
@@ -28,34 +36,78 @@ export async function run(provider: NetworkProvider) {
   // we can cast like this if we provide RPC API key in blueprint.config.ts
   const storm = stormProvider(provider.api() as TonClient4);
 
-  await evaa.getSync();
-
-  const baseAmount = parseFloat(
-    await ui.input(`Enter initial position for strategy(in ${baseAsset})`)
+  const isInitialStakeNeeded = await ui.input(
+    `Stake initial position for strategy? (y/n)`
   );
 
-  const stake = await storm.stake({
-    amount: toNano(baseAmount),
-    userAddress: provider.sender().address,
-  });
+  let slpBalance: bigint;
 
-  try {
-    const balanceBefore = await storm.lpBalanceOf(provider.sender().address);
-    console.log(`LP Balance before: ${fromNano(balanceBefore)}`);
-  } catch (e) {
-    console.log("errr", e);
+  if (isInitialStakeNeeded !== "n") {
+    const baseAmount = parseFloat(
+      await ui.input(`Enter initial position for strategy(in ${baseAsset})`)
+    );
+
+    const stake = await storm.stake({
+      amount: toNano(baseAmount),
+      userAddress: provider.sender().address,
+    });
+
+    try {
+      const balanceBefore = await storm.lpBalanceOf(provider.sender().address);
+      console.log(`LP Balance before: ${fromNano(balanceBefore)}`);
+    } catch (e) {
+      console.log("errr", e);
+    }
+
+    await provider.sender().send({
+      to: stake.to,
+      value: stake.value,
+      body: stake.body,
+    });
+
+    // use expanential backoff to wait for balance change, thx to ton ttb
+    slpBalance = await waitForLpBalanceChange(
+      provider.sender().address,
+      60000,
+      storm
+    );
+
+    // if we throw on lp change it's okay to drop
+  } else {
+    slpBalance = await getLpBalance(provider.sender().address, storm);
   }
 
-  await provider.sender().send({
-    to: stake.to,
-    value: stake.value,
-    body: stake.body,
+  console.log(`SLP Balance provided to vault: ${fromNano(slpBalance)}`);
+
+  await evaa.sendSupply(provider.sender(), FEES.SUPPLY_JETTON, {
+    queryID: 0n,
+    includeUserCode: true,
+    userAddress: provider.sender().address,
+    amount: slpBalance,
+    asset: config.supplyEvaaAsset,
+    payload: Cell.EMPTY,
+    amountToTransfer: toNano(0),
   });
 
-  // use expanential backoff to wait for balance change, thx to ton ttb
-  console.log(
-    `Balance after providing to vault ${fromNano(
-      await waitForLpBalanceChange(provider.sender().address, 60000, storm)
-    )}`
+  await sleep(60000); // 60s for tx
+
+  // TODO: change hardcoded timeout to exponential backoff fetch
+  const [borrowLimit, evaaPrices] = await waitForBorrowLimitChange(
+    evaa,
+    provider.sender().address,
+    config.borrowEvaaAsset.assetId
   );
+
+  console.log(`Borrow limit on ${baseAsset}: ${fromNano(borrowLimit)}`);
+
+  await evaa.sendWithdraw(provider.sender(), FEES.WITHDRAW, {
+    queryID: 0n,
+    includeUserCode: true,
+    userAddress: provider.sender().address,
+    amount: borrowLimit,
+    asset: config.borrowEvaaAsset,
+    priceData: evaaPrices.dataCell,
+    payload: Cell.EMPTY,
+    amountToTransfer: toNano(0),
+  });
 }

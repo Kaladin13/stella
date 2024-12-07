@@ -1,0 +1,35 @@
+diff --git a/node_modules/@evaafi/sdk/dist/contracts/JettonWallet.js b/node_modules/@evaafi/sdk/dist/contracts/JettonWallet.js
+index d635a63..061c811 100644
+--- a/node_modules/@evaafi/sdk/dist/contracts/JettonWallet.js
++++ b/node_modules/@evaafi/sdk/dist/contracts/JettonWallet.js
+@@ -12,7 +12,7 @@ class JettonWallet {
+     async sendTransfer(provider, via, value, payload) {
+         await provider.internal(via, {
+             value,
+-            sendMode: core_1.SendMode.PAY_GAS_SEPARATELY + core_1.SendMode.IGNORE_ERRORS,
++            sendMode: core_1.SendMode.PAY_GAS_SEPARATELY,
+             body: payload,
+         });
+     }
+diff --git a/node_modules/@evaafi/sdk/dist/contracts/MasterContract.js b/node_modules/@evaafi/sdk/dist/contracts/MasterContract.js
+index ea0ac48..3a7790e 100644
+--- a/node_modules/@evaafi/sdk/dist/contracts/MasterContract.js
++++ b/node_modules/@evaafi/sdk/dist/contracts/MasterContract.js
+@@ -181,7 +181,7 @@ class Evaa {
+         else {
+             await provider.internal(via, {
+                 value,
+-                sendMode: core_1.SendMode.PAY_GAS_SEPARATELY + core_1.SendMode.IGNORE_ERRORS,
++                sendMode: core_1.SendMode.PAY_GAS_SEPARATELY,
+                 body: message,
+             });
+         }
+@@ -190,7 +190,7 @@ class Evaa {
+         const message = this.createWithdrawMessage(parameters);
+         await provider.internal(via, {
+             value,
+-            sendMode: core_1.SendMode.PAY_GAS_SEPARATELY + core_1.SendMode.IGNORE_ERRORS,
++            sendMode: core_1.SendMode.PAY_GAS_SEPARATELY,
+             body: message,
+         });
+     }

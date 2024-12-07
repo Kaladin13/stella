@@ -28,3 +28,7 @@ export async function waitForLpBalanceChange(
     "Timeout: Balance did not change within the specified timeout period"
   );
 }
+
+export async function getLpBalance(userAddress: Address, storm: StormSDK) {
+  return await storm.lpBalanceOf(userAddress);
+}

@@ -6,6 +6,7 @@
     "build": "tsc",
     "lint": "prettier --write .",
     "start": "ts-node src/index.ts",
+    "postinstall": "patch-package",
     "strategy:stella": "npx blueprint run"
   },
   "author": "kaladin",
@@ -26,6 +27,7 @@
     "dayjs": "^1.11.10",
     "dotenv": "^16.0.1",
     "envalid": "^7.3.1",
+    "patch-package": "^8.0.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^5.0.5",
     "tonweb": "^0.0.66",
