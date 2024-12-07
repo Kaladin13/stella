@@ -71,6 +71,7 @@ export async function run(provider: NetworkProvider) {
         console.debug(`Failed to fetch LP balance before: ${e}`);
       }
 
+      ui.write(`Sending ${baseAmount} ${baseAsset} to Storm Vault`);
       await provider.sender().send({
         to: stake.to,
         value: stake.value,
@@ -97,6 +98,7 @@ export async function run(provider: NetworkProvider) {
         )}`
       );
 
+      ui.write(`Sending ${fromNano(slpBalance)} as collateral supply to Evaa`);
       await evaa.sendSupply(provider.sender(), FEES.SUPPLY_JETTON, {
         queryID: 0n,
         includeUserCode: true,
@@ -107,7 +109,7 @@ export async function run(provider: NetworkProvider) {
         amountToTransfer: toNano(0),
       });
 
-      await waitTx();
+      await waitTx(ui);
 
       // TODO: change hardcoded timeout to exponential backoff fetch
       const [borrowLimit, evaaPrices] = await waitForBorrowLimitChange(
@@ -117,6 +119,7 @@ export async function run(provider: NetworkProvider) {
       );
 
       ui.write(`Borrow limit on ${baseAsset}: ${fromNano(borrowLimit)}`);
+      ui.write(`Borrowing ${fromNano(borrowLimit)} ${baseAsset} from Evaa`);
 
       await evaa.sendWithdraw(provider.sender(), FEES.WITHDRAW, {
         queryID: 0n,
@@ -129,13 +132,14 @@ export async function run(provider: NetworkProvider) {
         amountToTransfer: toNano(0),
       });
 
-      await waitTx();
+      await waitTx(ui);
 
       const stake = await storm.stake({
         amount: borrowLimit,
         userAddress: provider.sender().address,
       });
 
+      ui.write(`Sending ${fromNano(borrowLimit)} ${baseAsset} to Storm Vault`);
       await provider.sender().send({
         to: stake.to,
         value: stake.value,
