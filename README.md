@@ -49,3 +49,6 @@ Net average profit: 4568.52 USD
 ## Future ideas
 
 Next thing I am aiming to implement is hedging impermanent loss from DEX Tokens liquidity provisioning with Options. Two most popular DEX'es on TON, [DeDust](https://dedust.io/) and [StonFi](https://app.ston.fi/), do not support concentrated liquidity yet, but have massive farming boosts from various projects and TF itself. With on-chain options protocol like [TON Hedge](https://tonhedge.com/) it should be possible to implement hedging strategy for Tokens with enough Options liquidity
+
+
+![img1](./public/stella.svg)
