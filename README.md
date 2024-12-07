@@ -1,6 +1,10 @@
-# Stella - Yield Farming Tool on TON blockchain
+# Stella - Liqudity Management protocol on TON blockchain
 
-Stella is a collection of tools that enable different farming strategies on TON, integrating with various decentralized finance protocols
+Stella is a liquidity-management protocol that enable different yield farming strategies on TON, integrating with various decentralized finance protocols
+
+[Litepaper](https://nonchalant-heron-91b.notion.site/Stella-1550ea3650df800a8fc9f622b2969be7)
+
+[Presentation](https://docs.google.com/presentation/d/1dQYa1_NQgaY0nAg5_uk_22238PxibP5CP2G9Z0YoThY/edit?usp=sharing)
 
 ## Leveraged liquidity provisioning with perpetual derivatives and collateralized loans
 
